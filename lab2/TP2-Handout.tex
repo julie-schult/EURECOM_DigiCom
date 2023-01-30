@@ -1,0 +1,65 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\textwidth  15cm
+\textheight 22cm
+\hoffset    -1cm
+\voffset     0cm
+\leftmargin 0cm
+\rightmargin 0cm
+\begin{document}
+
+
+
+
+
+\centerline{\Huge\bf Eur\'ecom}
+\vskip .5cm
+\centerline{\Large\bf Digital Communications}
+\vskip 1cm 
+{Lab Session 2 \flushright December 4th, 2020\par}
+\par
+\section{Receiver for NR Secondary Synchronization Signals (SSS)}
+The goal of this lab session is to investigate the OFDM receivers for
+the SSS signals used 3GPP-NR systems.  These are the second most basic signals that a terminal must detect prior to initiating a connection with the basestation. This detection is the second step in the so-called {\em cell search} procedure.
+
+You are to hand-in a report answering all the questions outlined here along with corresponding MATLAB code and figure files. If you do not finish in the supervised period of the session, you can continue to work on your own time.
+
+This document is just a complement of the slideset with specific instructions/questions for this lab session. 
+\subsection{SSS signals}
+The SSS is an BPSK-modulated OFDM signal comprising 127 subcarriers in subcarriers 56-182 of symbol 2 in the so-called {\em SSB block}(see slides). The position of the SSB block is determined from the position of the PSS that was detected.
+ 
+We are concerned with complex baseband equivalent transmit signals as in lab session 1.
+For all signals in this lab session, as in the first lab, the sampling rate is assumed to be 61.44 Msamples/s.  
+\subsubsection{Steps and Questions}
+\begin{enumerate}
+\item you will need the results of the first lab session, specifically the time-synchronization implementation and the signal files that you used before. If needed, we will acquire more signal files.
+\item {\bf OFDM demodulation}: extract the SSS symbol based on the timing information obtained from the PSS.  Remove the prefix and perform the FFTs of size 2048 to transfer them to the frequency domain.  
+\begin{enumerate}
+\item Plot the complex modulus of the 127 resource elements corresponding to the SSS.  Verify that there is a strong signal component in these elements. Verify also that there is no signal in positions $48...55$ and $183...191$.  These are typically used by the receiver to estimate the noise/interference level since they are so-called DTX elements (discontinuous transmission).  Plot also the complex modulus of the entire OFDM symbol containing the SSS.  Can you see anything characteristic of a QAM OFDM signal?
+\item Plot the I/Q constellation of the 127 SSS elements.  Explain (in words) what you see and why.
+\item Extract also the frequency-domain representation of the PSS signal which is in the same positions as the SSS but in symbol 0 of the SSB block.  Use the supplied (frequency-domain now, not time-domain like in the first lab) PSS waveform to perform least-squares channel estimation, namely:
+\begin{equation}
+\mathbf{H_{\mathrm PSS}} = \mathbf{PSS}_i^* \odot {\mathbf R}_{\mathrm{PSS}}
+\end{equation}
+where $\mathbf{PSS_i}$ is the frequency-domain representation of the $i^{\mathrm{th}}$ PSS signal and ${\mathbf R}_{\mathrm{PSS}}$ is the frequency-domain received signal of the PSS symbol.  Show that this is a good estimator for the channel-response by looking at the complex modulus of the frequency and time-domain responses (plot the complex modulus IFFT of the 127-point estimate.  You should see a single strong peak and perhaps a bit more ...
+\item Derive the Maximum-Likelihood receiver assuming that the channel does not vary and is just a complex phase-shift (i.e. the classical non-coherent channel model we studied) and that the PSS signal is known perfectly. Relate this to the channel estimator we considered in the previous step.
+\item consider also a channel model which is of the form $H_n(k) = e^{j2\pi(\phi + k\alpha) + n\beta}$ where $\alpha$ and $\beta$ are unnkown constants and limited to $-\alpha_0\leq\alpha\leq\alpha_0$, $-\beta_0\leq\beta\leq\beta_0$ and $\alpha_0,\beta_0$ are small quantities. $n$ represents the symbol index within the SSB block, where $n=0$ for PSS, $n=2$ for SSS. The other values for $n$ are not needed for the PSS/SSS detection. Think of what we did in Lab session 1 with an unknown frequency offset. Can you suggest a method to quantize $\alpha,\beta$ to derive a hypothesis testing problem which will lead to a practical receiver structure. $\alpha$ and $\beta$ are related to residual timing and frequency errors from the PSS detection component (i.e. the errors in estimating $N_f$ and $\Delta f$. Explain. 
+\item Use this channel estimate with potential smoothing (interpolation) to compensate the signal of the SSS.  Plot the I/Q signal at the output of the channel compensation.  Verify that you see something like an antipodal signal.  It may be distorted due to a non-flat frequency response. 
+\end{enumerate}
+\item {\bf Data detection}: Now use the supplied sequences to perform the data detection by doing a correlation of the 336 BPSK sequences to find the one with the highest correlation.
+\item {\bf Cell ID}: Obtain the most-likely Cell Id by combining the PSS and SSS sequences. 
+\end{enumerate}
+
+
+\subsection{MATLAB Files}
+The supplied MATLAB/OCTAVE files are
+\begin{enumerate}
+\item {\tt pss.m} - generates the three PSS signals for a 61.44 Ms/s configuration in time and frequency (same as lab session 1)
+\item {\tt sss.m} - provides the BPSK modulated signals used to perform the data detection of the SSS. These are the $d_{\mathrm{sss}}(n)$ sequences from the slides.
+\item {\tt rxsignal\_justnoise.mat} - new signal file containing both PSS and SSS with only noise
+\item {\tt rxsignal\_withchannel.mat} - PSS + SSS with noise and multipath channel
+\item {\tt rxsignal\_withchannelandfrequencyoffset.mat} - PSS + SSS with noise, multipat channel and frequency-offset 
+\end{enumerate}
+\end{document}

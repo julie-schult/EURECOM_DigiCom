@@ -1,0 +1,82 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\textwidth  15cm
+\textheight 22cm
+\hoffset    -1cm
+\voffset     0cm
+\leftmargin 0cm
+\rightmargin 0cm
+\begin{document}
+
+
+
+
+
+\centerline{\Huge\bf Eur\'ecom}
+\vskip .5cm
+\centerline{\Large\bf Digital Communications}
+\vskip 1cm 
+{Lab Session I \flushright October 30th, 2020\par}
+\par
+\section{Receiver for NR Primary Synchronization Signals (PSS)}
+The goal of this lab session is to investigate the receivers for
+the PSS signals used 3GPP-NR systems.  These are the most basic signals that a terminal must detect prior to initiating a connection with the basestation. This detection is the first step in the so-called {\em cell search} procedure.
+
+You are to hand-in a report answering all the questions outlined here along with corresponding MATLAB code and figure files. If you do not finish in the supervised period of the session, you can continue to work on your own time.
+\subsection{PSS signals}
+We are concerned with complex baseband equivalent transmit signals of the form
+\begin{equation}
+\tilde{s}_{\mathrm{PSS},i}(n) = \sum_{k}x_i(n-kN), i=0,1,2 \label{eq:PSS}
+\end{equation}
+where $N$ is the periodicity of the PSS signals which is $10^{-2} f_s$ samples and $f_s$ is the sampling frequency.  The PSS is part of a more complex signal called the SSB (Synchronization Signal Block) and there can be more than one in a period of 5ms depending on the antenna configuration, but here we will assume a simple scenario with a single SSB and therefore a single PSS as described in (\ref{eq:PSS}). $i$ is the index of the transmitted PSS signal and can have one of three values.  In the context of this lab session, we will assume that the receiver uses a sampling frequency of $f_s=61.44\times10^6 {\mathrm samples}/s$. $x_i(n)$ is the PSS signal itself which is of duration $N_\mathrm{PSS}=2048+144 = 2192$ samples. We will see later (after completing this lab session) that 2048 is the OFDM symbol size in samples and 144 is the cyclic prefix length. 
+\subsubsection{Questions}
+\begin{enumerate}
+\item Using the supplied MATLAB file ({\tt pss.m}) plot the real, imaginary components and magnitude of the one of the PSS signals.  What do you see?
+\item Plot the power spectrum of the PSS signal on a dB-scale (using the MATLAB FFT).  Estimate the bandwidth as closely as possible (in terms of physical frequencies).  What do you observe about the PSS signal?
+\item Plot the three auto-correlation functions and the three cross-correlation functions.  To what extent can we say that these three signals are orthogonal?  When using one PSS as a basis function, what is the ratio of signal energy to interference in dB if we assume that these are orthogonal? 
+\end{enumerate}
+\subsection{Channel Model}
+The received signal is assumed to be of the form
+\begin{equation*}
+y(n) = e^{2\pi j \Delta fn}\tilde{s}_{\mathrm{PSS},i}(n)*h(n) + z(n)
+\end{equation*}
+where $h(n)$ is assumed to a finite-impulse channel which is unknown to the receiver, $z(n)$ is complex circularly-symmetric and additive white Gaussian noise, and $\Delta f$ is an unknown frequency-offset.
+We can assume that the channel is of the form
+\begin{equation*}
+h(n) = \sum_{l=-\lceil L/2\rceil+1}^{\lfloor L/2\rfloor}a_l\delta(n-N_f-l) 
+\end{equation*}
+for some even number $L$.  The $a_l$ are complex amplitudes {\em unknown to the receiver} and $N_f$ is a presentation of the unknown timing offset between the transmitter and receiver.
+\subsubsection{Questions}
+\begin{enumerate}
+\item You have been provided several signal snapshots with different channel realizations as MATLAB signals
+\item Plot the time and frequency representations of the signals on a dB scale. What do you see?
+\item Estimate the bandwidth of the received signal? What are the signal components that are located outside the band of interest?
+\item In your opinion what contributes to the "changing shape" of the main signal component?
+\end{enumerate}
+\subsection{Receiver}
+The primary objective is to determine the most likely $i$, or index of the transmitted PSS. In addition we would like to have the best estimate of $N_f$ and $\Delta f$ since these are required to detect the other signal components after the PSS (Lab session 2).  This will be investigated in other lab sessions.  There are different approaches to doing this, but here we will take the approach where $N_f$ and $\Delta f$ are discretized and are detected in a similar fashion to $i$.  Let us assume that $N_f$ is discretized to the resolution of one sample. Since the periodicity of the PSS is $N$ samples, $N_f$ can assume the values $\{0,1,\cdots,N-1\}$.  Although a purely continuous random variable, we will also discretize $\Delta f$ as $\Delta f = m\Delta f_\mathrm{min},m=-\Delta f_\mathrm{max}/\Delta f_\mathrm{min},\cdots,\Delta f_\mathrm{max}/\Delta f_ \mathrm{min}$, where $\Delta f_\mathrm{max}$ is the largest frequency-offset we are likely to encounter.  Under these assumptions we will consider the following detection rule for the triple $(i,N_f,m)$
+\begin{equation*}
+(\hat{i},\hat{N_f},\hat{m}) = \underset{i,N_f,m}{\operatorname{argmax}} Y(i,N_f,m)
+\end{equation*}
+where $Y(i,N_f,m)$ will be chosent as the following statistic
+\begin{equation*}
+Y(i,N_f,m) = \left|\sum_{n=0}^{N_\mathrm{PSS}} e^{-2\pi j m\Delta f_\mathrm{min}}x_i^*(n)y(n+N_f)\right|^2
+\end{equation*}
+This assumes that we are performing the detection across two periods of the PSS waveform (one radio frame).
+\subsubsection{Questions}
+\begin{enumerate}
+\item How is the above statistic related to the maximum-likelihood detector we considered in class? What is the reason for the difference? Think about the simpler receiver where $L=1$, $N_f=0$ and $\Delta f=0$. 
+\item What is the effect of the channel in all of this?  How is it taken into account and what is neglected here?
+\item Show how you can use the convolution operator with the matched filter to implement the above maximization in a compact form (think of the basic receiver structures we explored in class).  Plot the output of the three matched filters for $m=0$ (i.e. no frequency offset). Which PSS is most likely and try to determine $N_f$.
+\item For the most likely PSS index $i$ and $N_f$ with $m=0$, plot the peak value of the statistic in 100 Hz steps and a $\pm 7.5 kHz$ window around the carrier frequency (i.e. $\Delta f_\mathrm{max}/\Delta f_\mathrm{min} = 75$).  What is the most likely frequency-offset?  Based on the shape of the statistic can you think of a efficient way to implement the frequency-offset estimator to obtain even finer resolution and to minimize the number of correlations that are required? (hint: think of a binary search applied to this) 
+
+\end{enumerate}
+\section{MATLAB Files}
+The supplied MATLAB/OCTAVE files are
+\begin{enumerate}
+\item {\tt pss.m} - generates the three PSS signals for $f_s$ bandwidth 
+\item {\tt TP1\_top.m} - skeleton of your exercise that should be completed
+\end{enumerate}
+\end{document}
