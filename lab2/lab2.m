@@ -29,10 +29,12 @@ Rsss3 = fftshift(fft(rsss3,2048));
 a=find(Rsss>10000);
 Rsss_new = Rsss(a(2):a(length(a)));
 figure(1)
-stem(abs(Rsss_new)), title('Rsss')
+plot(abs(Rsss_new)), title(' Complex modulus of 127 resource elements of Rss')
 Rsss0 = Rsss_new(56:182);
+%figure(2)
+%plot(abs(Rsss0)), title('Complex modulus')
 figure(2)
-stem(abs(Rsss0)), title('Rsss')
+plot(abs(Rsss)), title('Complex modulus of entire OFDM symbol')
 %Characteristic of QAM OFDM: ?
 
 %% 2a Rsss1
@@ -54,7 +56,7 @@ stem(abs(Rsss3_new)), title('Rsss3')
 Rsss33 = Rsss3_new(73:199);
 %% 2b
 figure(3)
-plot(real(Rsss0),imag(Rsss0),'bo') 
+plot(real(Rsss0),imag(Rsss0),'bo'), title("I/Q constellation SSS resource elements")
 %The 'circle' of points is the sss part of the OFDM symbol
 
 %% 2c
@@ -67,11 +69,11 @@ Rpss_new = Rpss(961:1087);%???
 H = conj(pss_2).*Rpss;
 H = [H(1985:2048); H(1:63)];
 figure(4)
-plot(abs(H)), title('freq domain channel est.')
+plot(abs(H)), title('Complex modulus of the IFFT of the estimate of the channel response (freq)')
 figure(5)
 h = ifft(H);
-%v = [-1024:1023];
-plot(abs(h)), title('time domain channel est.') %Strong peak in 0, this means this is a good channel estimator
+x = 0:126;
+plot(x - 126,abs(h)), title('Complex modulus of the IFFT of the estimate of the channel response') %Strong peak in 0, this means this is a good channel estimator
 
 %% 2d
 %{
@@ -89,18 +91,18 @@ iq_sss2 = conj(H).*Rsss22;
 iq_sss3 = conj(H).*Rsss33;
 
 figure(7)
-plot(real(iq_sss0),imag(iq_sss0),'o'), title('I/Q signal Rsss0')
+plot(real(iq_sss0),imag(iq_sss0),'o'), title('I/Q constellation of output of channel (rxs0) compensation')
 figure(8)
-plot(real(iq_sss2),imag(iq_sss2),'o'), title('I/Q signal Rsss2')
+plot(real(iq_sss2),imag(iq_sss2),'o'), title('I/Q constellation of output of channel (rxs2) compensation')
 figure(9)
-plot(real(iq_sss3),imag(iq_sss3),'o'), title('I/Q signal Rsss3')
+plot(real(iq_sss3),imag(iq_sss3),'o'), title('I/Q constellation of output of channel (rxs3) compensation')
 
 
 %% 3
-res = d(1+2:3:size(d,1),:)*iq_sss2;
+res = d(1+2:3:size(d,1),:)*iq_sss0;
 [val,id] = max(normalize(abs(res)))
 figure(10)
-stem(abs(res)), title('Correlation BPSK ans SSS0')
+stem(abs(res)), title('Correlation BPSK and SSS')
 
 %% 4
 cellID = 2 + 3*id
